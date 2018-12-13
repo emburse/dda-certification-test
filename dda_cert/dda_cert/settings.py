@@ -18,9 +18,5 @@ DDA_ACCOUNTSDETAILS = DDA_ENDPOINT_BASE_URL + "/accountsdetails"
 # OAuth 2.0 access token
 ACCESS_TOKEN = ""
 
-# Account ID to be used, specify it if the DDA accountId format is different from the format
-# used in OFX ACCTID field
-ACCOUNT_ID = ""
-
 # Absolute path to the .ofx file containing test data
 OFX_FILE_PATH = ""

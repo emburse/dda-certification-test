@@ -4,7 +4,7 @@ import unittest
 import requests
 from ofxtools.Parser import OFXTree
 
-from ..settings import DDA_ACCOUNT_TRANSACTIONS, OFX_FILE_PATH, ACCESS_TOKEN, ACCOUNT_ID
+from ..settings import DDA_ACCOUNT_TRANSACTIONS, OFX_FILE_PATH, ACCESS_TOKEN, DDA_ACCOUNTSDETAILS
 
 
 class TestAccounts(unittest.TestCase):
@@ -14,24 +14,59 @@ class TestAccounts(unittest.TestCase):
         parser.parse(OFX_FILE_PATH)
 
         self.ofx = parser.convert()
-        self.ofx_statement = self.ofx.statements[0]
-        self.ofx_transactions = self.ofx_statement.transactions
         self.auth_headers = {"Authorization": "Bearer {}".format(ACCESS_TOKEN)}
 
-    def test_account_transactions(self):
+        request = requests.get(DDA_ACCOUNTSDETAILS, headers=self.auth_headers)
+        result = json.loads(request.content)
+        self.dda_accounts = result.get("Accounts")
 
-        startTime = self.ofx_statement.banktranlist.dtstart.isoformat()
-        endTime = self.ofx_statement.banktranlist.dtend.isoformat()
+        self.accounts_map = {}
+        for account in self.dda_accounts:
+            self.accounts_map[account["AccountNumber"]] = account
+
+    def test_accountsdetails_meta(self):
+        """
+        12.6. GET /accountsdetails
+
+        Get all account information (details & transactions) for the current token.
+
+        Response Formats:
+            application/json, application/xml
+
+        Response Type:
+            Accounts
+        """
+
+        for statement in self.ofx.statements:
+            self.assertTrue(statement.account.acctid in self.accounts_map.keys())
+            self.assertEqual(statement.account.accttype, self.accounts_map[statement.account.acctid]["AccountType"])
+
+    def test_accounts_transactions(self):
+        """
+        Test transaction list returned by the /accountsdetails resource.
+        """
+        for statement in self.ofx.statements:
+            self.__test_account_transactions(statement=statement)
+
+    def __test_account_transactions(self, statement):
+        """
+        Test transaction listing for given account
+        """
+
+        accountId = self.accounts_map[statement.account.acctid]["AccountId"]
+        startTime = statement.banktranlist.dtstart.isoformat()
+        endTime = statement.banktranlist.dtend.isoformat()
 
         r = requests.post(DDA_ACCOUNT_TRANSACTIONS, data={
-            "accountId": ACCOUNT_ID,
+            "accountId": accountId,
             "startTime": startTime,
             "endTime": endTime,
         }, headers=self.auth_headers)
 
         result = json.loads(r.content)
 
-        for i, transaction in enumerate(self.ofx_transactions):
+        self.assertEqual(len(statement.transactions), len(result.get("Transactions")))
+        for i, transaction in enumerate(statement.transactions):
             result_transaction = result["Transactions"][i]
 
             # Compare transaction IDs
