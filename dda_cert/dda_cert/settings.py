@@ -8,6 +8,8 @@ DDA_ENDPOINT_BASE_URL = ""
 
 # DDA spec account resource
 DDA_ACCOUNT = DDA_ENDPOINT_BASE_URL + "/account"
+# DDA spec: Get a lightweight list of accounts for the current token.
+DDA_ACCOUNT_LIST = DDA_ENDPOINT_BASE_URL + "/accountlist"
 # DDA spec account transactions resource
 DDA_ACCOUNT_TRANSACTIONS = DDA_ENDPOINT_BASE_URL + "/account/transactions"
 # DDA spec account transactions resource
