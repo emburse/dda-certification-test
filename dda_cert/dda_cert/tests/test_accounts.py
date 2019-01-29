@@ -178,10 +178,44 @@ def test_accountsdetails_meta(self):
         self.assertEqual(statement.account.accttype, self.accounts_map[statement.account.acctid]["AccountType"])
 
 
+def test_accounts_transactions(self):
+    """
+    Test transaction list returned by the /accountsdetails resource.
+    """
+    for statement in self.ofx.statements:
+        self.__test_account_transactions(statement=statement)
 
-            # Verify transaction type: DEBIT, CREDIT, MEMO
-            self.assertTrue(transaction.trntype == result_transaction["DebitCreditMemo"])
 
-            # check for transaction category code (SIC/MCC)
-            if transaction.sic:
-                self.assertEqual(str(transaction.sic), str(result_transaction["Category"]))
+def __test_account_transactions(self, statement):
+    """
+    Test transaction listing for given account
+    """
+
+    accountId = self.accounts_map[statement.account.acctid]["AccountId"]
+    startTime = statement.banktranlist.dtstart.isoformat()
+    endTime = statement.banktranlist.dtend.isoformat()
+
+    r = requests.post(DDA_ACCOUNT_TRANSACTIONS, data={
+        "accountId": accountId,
+        "startTime": startTime,
+        "endTime": endTime,
+    }, headers=self.auth_headers)
+
+    result = json.loads(r.content)
+
+    self.assertEqual(len(statement.transactions), len(result.get("Transactions")))
+    for i, transaction in enumerate(statement.transactions):
+        result_transaction = result["Transactions"][i]
+
+        # Compare transaction IDs
+        self.assertTrue(transaction.fitid == result_transaction["TransactionId"])
+
+        # Verify transaction amount (+/- Decimal)
+        self.assertTrue(float(transaction.trnamt) == float(result_transaction["Amount"]))
+
+        # Verify transaction type: DEBIT, CREDIT, MEMO
+        self.assertTrue(transaction.trntype == result_transaction["DebitCreditMemo"])
+
+        # check for transaction category code (SIC/MCC)
+        if transaction.sic:
+            self.assertEqual(str(transaction.sic), str(result_transaction["Category"]))
