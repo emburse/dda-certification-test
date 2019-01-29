@@ -160,28 +160,24 @@ class TestAccounts(unittest.TestCase):
             self.assertEqual(ofx_account.accttype, accounts_by_acc_number[ofx_account.acctid]["AccountType"])
 
 
+def test_accountsdetails_meta(self):
+    """
+    12.6. GET /accountsdetails
 
-        accountId = self.accounts_map[statement.account.acctid]["AccountId"]
-        startTime = statement.banktranlist.dtstart.isoformat()
-        endTime = statement.banktranlist.dtend.isoformat()
+    Get all account information (details & transactions) for the current token.
 
-        r = requests.post(DDA_ACCOUNT_TRANSACTIONS, data={
-            "accountId": accountId,
-            "startTime": startTime,
-            "endTime": endTime,
-        }, headers=self.auth_headers)
+    Response Formats:
+        application/json, application/xml
 
-        result = json.loads(r.content)
+    Response Type:
+        Accounts
+    """
 
-        self.assertEqual(len(statement.transactions), len(result.get("Transactions")))
-        for i, transaction in enumerate(statement.transactions):
-            result_transaction = result["Transactions"][i]
+    for statement in self.ofx.statements:
+        self.assertTrue(statement.account.acctid in self.accounts_map.keys())
+        self.assertEqual(statement.account.accttype, self.accounts_map[statement.account.acctid]["AccountType"])
 
-            # Compare transaction IDs
-            self.assertTrue(transaction.fitid == result_transaction["TransactionId"])
 
-            # Verify transaction amount (+/- Decimal)
-            self.assertTrue(float(transaction.trnamt) == float(result_transaction["Amount"]))
 
             # Verify transaction type: DEBIT, CREDIT, MEMO
             self.assertTrue(transaction.trntype == result_transaction["DebitCreditMemo"])
