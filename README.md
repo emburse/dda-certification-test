@@ -1,13 +1,12 @@
 # dda-certification-test
-DDA Certification Test Suite was designed to help developers create their own DDA
-compliant APIs.
-It provides a set of tests to ensure data consistency and compatibility
+DDA Certification Test Suite is designed to help developers certify their DDA-compliant APIs.
+This test suite provides a set of tests to ensure data consistency and compatibility
 with DDA requirements.
 
-At the current moment DDA v1.0 spec is covered.
+Currently, the DDA v1.0 spec is covered by this test suite.
 
 ## Requirements
-1. An OFX file will be needed, it has to cover Bank Transaction List, an example code is shown below:
+1. An OFX file is required to validate data returned from the Bank Transaction List endpoint. The contents of an example OFX file is shown below:
 
     ```XML
     <?xml version="1.0" encoding="US-ASCII"?>
@@ -69,21 +68,21 @@ At the current moment DDA v1.0 spec is covered.
     </OFX>
     ```
 
-2. An Access Token, DDA endpoints use OAuth 2.0, the authentication has to be done thru `Authorization: Bearer ACCESS_TOKEN` Header
+2. An OAuth 2.0 Access Token is required for making requests to DDA endpoints. This certification test suite does not test the OAuth token issuance process, and instead assumes that a valid token has already been retrieved for use in the `Authorization: Bearer ACCESS_TOKEN` Header.
 
 ## Installation instructions
-It's better to use virtualenv so we don't pollute the global environment with requirements:
+This certification test suite is implemented using Python and depends upon requirements defined within `requirements.txt`. We recommend creating a virtualenv to avoid polluting your the global environment with Python requirements:
 ```
 virtualenv .venv --no-site-packages
 ```
-Activate the environment and install requiremenmts:
+Activate the virtual Python environment and install Python requirements:
 ```
 source ./.venv/bin/activate
 pip install --upgrade -r requirements.txt
 ```
 
 ## Configuration
-Open `dda-certification-test/dda_cert/dda_cert/settings.py` file and configure required fields:
+Open `dda-certification-test/dda_cert/dda_cert/settings.py` file and configure the following required fields:
 
 ```
 DDA_ENDPOINT_BASE_URL = "https://example.com/dda/1.0"
@@ -94,7 +93,7 @@ ACCESS_TOKEN = "0000000000000000000000000000000000000000"
 # Absolute path to the .ofx file containing test data
 OFX_FILE_PATH = os.path.join(BASE_PATH, "../statement-2018-03-01.ofx")
 ```
-Please note that OFX_FILE_PATH is relative to the `dda-certification-test` directory.
+Please note that the OFX_FILE_PATH is relative to the `dda-certification-test` directory.
 
 # Testing
 Simply run:
