@@ -110,12 +110,12 @@ class TestAccounts(unittest.TestCase):
         result = json.loads(request.content)
 
         accounts_by_acc_number = {}
-        for account in result.get("AccountDescriptorList"):
+        for account_descriptor in result.get("AccountDescriptorList"):
             response = requests.post(
                 DDA_ACCOUNT,
                 headers={**self.auth_headers, "Content-Type": "application/x-www-form-urlencoded"},
                 data=urlencode({
-                    "accountId": str(account["AccountId"]),
+                    "accountId": str(account_descriptor["AccountId"]),
                 })
             )
             content = json.loads(response.content)
