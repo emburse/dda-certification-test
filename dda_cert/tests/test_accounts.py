@@ -16,6 +16,35 @@ class TestAccounts(unittest.TestCase):
         parser.parse(OFX_FILE_PATH)
         self.ofx = parser.convert()
         self.auth_headers = {"Authorization": "Bearer {}".format(ACCESS_TOKEN)}
+        self.accounts_map = {}
+
+    def __get_accounts_map(self):
+        """
+        Fetch the map of accounts represented by account numbers
+        """
+
+        # get the list of available accounts
+        request = requests.get(DDA_ACCOUNT_LIST, headers=self.auth_headers)
+        result = json.loads(request.content)
+
+        accounts_by_acc_number = {}
+        for account_descriptor in result.get("AccountDescriptorList"):
+            response = requests.post(
+                DDA_ACCOUNT,
+                headers={**self.auth_headers, "Content-Type": "application/x-www-form-urlencoded"},
+                data=urlencode({
+                    "accountId": str(account_descriptor["AccountId"]),
+                })
+            )
+            content = json.loads(response.content)
+
+            # get the first key (ofe of the account types)
+            account = content[list(content.keys())[0]]
+
+            # assign to the account number
+            accounts_by_acc_number[account["AccountNumber"]] = account
+
+        return accounts_by_acc_number
 
     def test_account_list_pagination(self):
         """
@@ -172,9 +201,11 @@ class TestAccounts(unittest.TestCase):
             Accounts
         """
 
+        accounts_map = self.__get_accounts_map()
+
         for statement in self.ofx.statements:
-            self.assertTrue(statement.account.acctid in self.accounts_map.keys())
-            self.assertEqual(statement.account.accttype, self.accounts_map[statement.account.acctid]["AccountType"])
+            self.assertTrue(statement.account.acctid in accounts_map.keys())
+            self.assertEqual(statement.account.accttype, accounts_map[statement.account.acctid]["AccountType"])
 
     def test_accounts_transactions(self):
         """
@@ -188,7 +219,9 @@ class TestAccounts(unittest.TestCase):
         Test transaction listing for given account
         """
 
-        accountId = self.accounts_map[statement.account.acctid]["AccountId"]
+        accounts_map = self.__get_accounts_map()
+
+        accountId = accounts_map[statement.account.acctid]["AccountId"]
         startTime = statement.banktranlist.dtstart.isoformat()
         endTime = statement.banktranlist.dtend.isoformat()
 
