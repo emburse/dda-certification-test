@@ -159,63 +159,60 @@ class TestAccounts(unittest.TestCase):
         for ofx_account in accounts_from_ofx:
             self.assertEqual(ofx_account.accttype, accounts_by_acc_number[ofx_account.acctid]["AccountType"])
 
+    def test_accountsdetails_meta(self):
+        """
+        12.6. GET /accountsdetails
 
-def test_accountsdetails_meta(self):
-    """
-    12.6. GET /accountsdetails
+        Get all account information (details & transactions) for the current token.
 
-    Get all account information (details & transactions) for the current token.
+        Response Formats:
+            application/json, application/xml
 
-    Response Formats:
-        application/json, application/xml
+        Response Type:
+            Accounts
+        """
 
-    Response Type:
-        Accounts
-    """
+        for statement in self.ofx.statements:
+            self.assertTrue(statement.account.acctid in self.accounts_map.keys())
+            self.assertEqual(statement.account.accttype, self.accounts_map[statement.account.acctid]["AccountType"])
 
-    for statement in self.ofx.statements:
-        self.assertTrue(statement.account.acctid in self.accounts_map.keys())
-        self.assertEqual(statement.account.accttype, self.accounts_map[statement.account.acctid]["AccountType"])
+    def test_accounts_transactions(self):
+        """
+        Test transaction list returned by the /accountsdetails resource.
+        """
+        for statement in self.ofx.statements:
+            self.__test_account_transactions(statement=statement)
 
+    def __test_account_transactions(self, statement):
+        """
+        Test transaction listing for given account
+        """
 
-def test_accounts_transactions(self):
-    """
-    Test transaction list returned by the /accountsdetails resource.
-    """
-    for statement in self.ofx.statements:
-        self.__test_account_transactions(statement=statement)
+        accountId = self.accounts_map[statement.account.acctid]["AccountId"]
+        startTime = statement.banktranlist.dtstart.isoformat()
+        endTime = statement.banktranlist.dtend.isoformat()
 
+        r = requests.post(DDA_ACCOUNT_TRANSACTIONS, data={
+            "accountId": accountId,
+            "startTime": startTime,
+            "endTime": endTime,
+        }, headers=self.auth_headers)
 
-def __test_account_transactions(self, statement):
-    """
-    Test transaction listing for given account
-    """
+        result = json.loads(r.content)
 
-    accountId = self.accounts_map[statement.account.acctid]["AccountId"]
-    startTime = statement.banktranlist.dtstart.isoformat()
-    endTime = statement.banktranlist.dtend.isoformat()
+        self.assertEqual(len(statement.transactions), len(result.get("Transactions")))
+        for i, transaction in enumerate(statement.transactions):
+            result_transaction = result["Transactions"][i]
 
-    r = requests.post(DDA_ACCOUNT_TRANSACTIONS, data={
-        "accountId": accountId,
-        "startTime": startTime,
-        "endTime": endTime,
-    }, headers=self.auth_headers)
+            # Compare transaction IDs
+            self.assertTrue(transaction.fitid == result_transaction["TransactionId"])
 
-    result = json.loads(r.content)
+            # Verify transaction amount (+/- Decimal)
+            self.assertTrue(float(transaction.trnamt) == float(result_transaction["Amount"]))
 
-    self.assertEqual(len(statement.transactions), len(result.get("Transactions")))
-    for i, transaction in enumerate(statement.transactions):
-        result_transaction = result["Transactions"][i]
+            # Verify transaction type: DEBIT, CREDIT, MEMO
+            self.assertTrue(transaction.trntype == result_transaction["DebitCreditMemo"])
 
-        # Compare transaction IDs
-        self.assertTrue(transaction.fitid == result_transaction["TransactionId"])
-
-        # Verify transaction amount (+/- Decimal)
-        self.assertTrue(float(transaction.trnamt) == float(result_transaction["Amount"]))
-
-        # Verify transaction type: DEBIT, CREDIT, MEMO
-        self.assertTrue(transaction.trntype == result_transaction["DebitCreditMemo"])
-
-        # check for transaction category code (SIC/MCC)
-        if transaction.sic:
-            self.assertEqual(str(transaction.sic), str(result_transaction["Category"]))
+            # check for transaction category code (SIC/MCC)
+            if transaction.sic:
+                self.assertEqual(str(transaction.sic), str(result_transaction["Category"]))
