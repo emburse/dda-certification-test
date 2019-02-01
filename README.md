@@ -82,7 +82,7 @@ pip install --upgrade -r requirements.txt
 ```
 
 ## Configuration
-Open `dda-certification-test/dda_cert/dda_cert/settings.py` file and configure the following required fields:
+Open `dda-certification-test/dda_cert/settings.py` file and configure the following required fields:
 
 ```
 DDA_ENDPOINT_BASE_URL = "https://example.com/dda/1.0"
@@ -91,7 +91,7 @@ DDA_ENDPOINT_BASE_URL = "https://example.com/dda/1.0"
 ACCESS_TOKEN = "0000000000000000000000000000000000000000"
 
 # Absolute path to the .ofx file containing test data
-OFX_FILE_PATH = os.path.join(BASE_PATH, "../statement-2018-03-01.ofx")
+OFX_FILE_PATH = os.path.join(BASE_PATH, "statement-2018-03-01.ofx")
 ```
 Please note that the OFX_FILE_PATH is relative to the `dda-certification-test` directory.
 
@@ -99,5 +99,5 @@ Please note that the OFX_FILE_PATH is relative to the `dda-certification-test` d
 Simply run:
 ```
 cd dda-certification-test
-python -m unittest dda_cert.dda_cert.tests
+python -m unittest dda_cert.tests
 ```
