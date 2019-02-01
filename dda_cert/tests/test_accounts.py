@@ -256,8 +256,9 @@ class TestAccounts(unittest.TestCase):
             # Compare transaction IDs
             self.assertTrue(transaction.fitid == result_transaction["TransactionId"])
 
-            # Verify transaction amount (+/- Decimal)
-            self.assertTrue(float(transaction.trnamt) == float(result_transaction["Amount"]))
+            # Verify transaction amounts, convert amount from .ofx file to positive because
+            # DDA API returns positive values as well
+            self.assertTrue(abs(float(transaction.trnamt)) == float(result_transaction["Amount"]))
 
             # Verify transaction type: DEBIT, CREDIT, MEMO
             self.assertTrue(transaction.trntype == result_transaction["DebitCreditMemo"])
