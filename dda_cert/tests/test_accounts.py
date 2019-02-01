@@ -232,10 +232,26 @@ class TestAccounts(unittest.TestCase):
         }, headers=self.auth_headers)
 
         result = json.loads(r.content)
+        dda_transactions = result.get("Transactions")
 
-        self.assertEqual(len(statement.transactions), len(result.get("Transactions")))
+        # build a complete list of transactions (spanned across multiple pages)
+        if result.get("TotalPages") > 1:
+            for page_number in range(result.get("TotalPages") - 1):
+                r = requests.post(DDA_ACCOUNT_TRANSACTIONS, data={
+                    "accountId": accountId,
+                    "startTime": startTime,
+                    "endTime": endTime,
+                    "page": page_number + 2,  # +2 to start index from 1 and add one page on top of 1
+                }, headers=self.auth_headers)
+
+                result = json.loads(r.content)
+                dda_transactions += result.get("Transactions")
+
+        # check if number of transactions is the same on both ends
+        self.assertEqual(len(statement.transactions), len(dda_transactions))
+
         for i, transaction in enumerate(statement.transactions):
-            result_transaction = result["Transactions"][i]
+            result_transaction = dda_transactions[i]
 
             # Compare transaction IDs
             self.assertTrue(transaction.fitid == result_transaction["TransactionId"])
