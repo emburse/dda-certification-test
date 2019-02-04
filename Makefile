@@ -1,3 +1,3 @@
 
 test:
-	python -m unittest dda_cert.dda_cert.tests
+	python -m unittest dda_cert.tests
