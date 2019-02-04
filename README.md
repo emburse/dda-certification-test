@@ -5,6 +5,11 @@ with DDA requirements.
 
 Currently, the DDA v1.0 spec is covered by this test suite.
 
+Endpoints already covered by these tests:
+* `AccountDescriptorList` Entity (required fields) via `/accountlist` endpoint
+* `DepositAcount` Entity (required fields) via `/account` endpoint
+* `Transaction` Entity (required fields, pagination) via `/account/transactions/` endpoint
+
 ## Requirements
 1. An OFX file is required to validate data returned from the Bank Transaction List endpoint. The contents of an example OFX file is shown below:
 
@@ -99,5 +104,13 @@ Please note that the OFX_FILE_PATH is relative to the `dda-certification-test` d
 Simply run:
 ```
 cd dda-certification-test
+source ./.venv/bin/activate
+```
+then
+```
+make test
+```
+or
+```
 python -m unittest dda_cert.tests
 ```
