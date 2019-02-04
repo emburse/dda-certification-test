@@ -188,17 +188,11 @@ class TestAccounts(unittest.TestCase):
         for ofx_account in accounts_from_ofx:
             self.assertEqual(ofx_account.accttype, accounts_by_acc_number[ofx_account.acctid]["AccountType"])
 
-    def test_accountsdetails_meta(self):
+    def test_accounts_consistency(self):
         """
-        12.6. GET /accountsdetails
+        Check account consistency between .ofx file and data returned by the DDA endpoint.
+        AccountNumber/ACCTID are compared along with AccountType/ACCTTYPE.
 
-        Get all account information (details & transactions) for the current token.
-
-        Response Formats:
-            application/json, application/xml
-
-        Response Type:
-            Accounts
         """
 
         accounts_map = self.__get_accounts_map()
