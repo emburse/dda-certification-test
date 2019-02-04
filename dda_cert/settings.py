@@ -12,8 +12,6 @@ DDA_ACCOUNT = DDA_ENDPOINT_BASE_URL + "/account"
 DDA_ACCOUNT_LIST = DDA_ENDPOINT_BASE_URL + "/accountlist"
 # DDA spec account transactions resource
 DDA_ACCOUNT_TRANSACTIONS = DDA_ENDPOINT_BASE_URL + "/account/transactions"
-# DDA spec account transactions resource
-DDA_ACCOUNTLIST = DDA_ENDPOINT_BASE_URL + "/accountlist"
 # AccountsDetails resource (POST and GET)
 DDA_ACCOUNTSDETAILS = DDA_ENDPOINT_BASE_URL + "/accountsdetails"
 
